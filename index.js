@@ -21,11 +21,13 @@ fs.readdirSync(commandsPath).forEach(file => {
                 throw new Error(`Missing required properties in ${file}`);  
             }  
 
-            const route = command.route || `/${command.name}`;  
+            const route = command.route || `/${command.name.toLowerCase().replace(/\s+/g, '-')}`;  
             const method = command.method?.toLowerCase() || 'get';  
 
+            // Register the route with Express
             app[method](route, command.handler);  
 
+            // Store command metadata
             commands.push({  
                 id: command.name.toLowerCase().replace(/\s+/g, '-'),
                 name: command.name,  
@@ -48,32 +50,17 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));  
 });
 
-app.get('/shoti', (req, res) => {  
-    res.sendFile(path.join(__dirname, 'public', 'shoti.html'));  
-});
-
 // API to get the list of all commands  
 app.get('/api/list', (req, res) => {  
     res.json(commands);  
 });  
 
-// Endpoint to get categories for navigation
-app.get('/api/categories', (req, res) => {
-    const categories = {};
-    commands.forEach(cmd => {
-        if (!categories[cmd.category]) {
-            categories[cmd.category] = [];
-        }
-        categories[cmd.category].push(cmd);
-    });
-    res.json(categories);
-});
-
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Loaded ${commands.length} API endpoints`);
+    console.log(`🌐 Dashboard available at http://localhost:${PORT}`);
 });
 
-// Export the app for Vercel  
 module.exports = app;
