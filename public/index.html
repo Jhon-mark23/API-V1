@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
+    :root {
             --primary: #4361ee;
             --primary-light: #eef2ff;
             --primary-dark: #3a56d4;
@@ -923,6 +923,73 @@
                 gap: 5px;
             }
         }
+        /* Previous CSS remains the same, just adding new styles for the new button */
+        
+        /* New button style for Open API */
+        .open-api-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .open-api-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #059669, #10b981);
+            transition: left 0.4s;
+            z-index: -1;
+        }
+        
+        .open-api-btn:hover:before {
+            left: 0;
+        }
+        
+        .open-api-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+        }
+        
+        .open-api-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Container for API buttons */
+        .api-buttons-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .api-buttons-container {
+                flex-direction: column;
+            }
+            
+            .open-api-btn, .try-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -984,14 +1051,28 @@
                         <span>API Server Online</span>
                     </div>
                 </div>
+                
+                <!-- API Endpoint Display -->
                 <div class="try-api-container">
                     <div class="api-endpoint">
                         <strong>Endpoint:</strong>
                         <code id="apiEndpoint">Select an API first</code>
+                        <div class="api-info" style="margin-top: 10px; padding: 0; border: none;">
+                            <strong>Full URL:</strong>
+                            <code id="fullApiUrl" style="display: block; margin-top: 5px;">No API selected</code>
+                        </div>
                     </div>
-                    <button class="try-btn" id="tryApiBtn">
-                        <i class="fas fa-play-circle"></i> Send Request
-                    </button>
+                    
+                    <!-- Buttons Container -->
+                    <div class="api-buttons-container">
+                        <button class="try-btn" id="tryApiBtn">
+                            <i class="fas fa-play-circle"></i> Test API
+                        </button>
+                        
+                        <button class="open-api-btn" id="openApiBtn" style="display: none;">
+                            <i class="fas fa-external-link-alt"></i> Open in New Tab
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Request Parameters -->
@@ -1046,7 +1127,9 @@
         const statsOverview = document.getElementById('statsOverview');
         const tryApiSection = document.getElementById('tryApiSection');
         const apiEndpoint = document.getElementById('apiEndpoint');
+        const fullApiUrl = document.getElementById('fullApiUrl');
         const tryApiBtn = document.getElementById('tryApiBtn');
+        const openApiBtn = document.getElementById('openApiBtn');
         const requestParams = document.getElementById('requestParams');
         const paramsContainer = document.getElementById('paramsContainer');
         const responseContainer = document.getElementById('responseContainer');
@@ -1270,6 +1353,16 @@
                 `;
             }
             
+            // Add usage information if available
+            let usageHTML = '';
+            if (api.usage && api.usage !== "No usage information provided.") {
+                usageHTML = `
+                    <div class="api-info">
+                        <strong>Usage:</strong> <code>${api.usage}</code>
+                    </div>
+                `;
+            }
+            
             const apiHTML = `
                 <div class="api-container">
                     <div class="api-header">
@@ -1295,8 +1388,10 @@
                     
                     ${paramsHTML}
                     
+                    ${usageHTML}
+                    
                     <div class="api-info">
-                        <strong>Example:</strong> <code>${window.location.origin}${api.route}</code>
+                        <strong>Example URL:</strong> <code>${window.location.origin}${api.route}</code>
                     </div>
                 </div>
             `;
@@ -1319,17 +1414,30 @@
 
         // Update the Try API section
         function updateTryApiSection(api) {
-            const fullUrl = `${window.location.origin}${api.route}`;
-            apiEndpoint.textContent = fullUrl;
+            const baseUrl = `${window.location.origin}${api.route}`;
+            
+            // Display route and full URL
+            apiEndpoint.textContent = api.route;
+            fullApiUrl.textContent = baseUrl;
             
             // Update button text based on method
-            let buttonText = 'Send Request';
-            if (api.method === 'GET') buttonText = 'GET Request';
-            if (api.method === 'POST') buttonText = 'POST Request';
-            if (api.method === 'PUT') buttonText = 'PUT Request';
-            if (api.method === 'DELETE') buttonText = 'DELETE Request';
+            let buttonText = 'Test API';
+            if (api.method === 'GET') buttonText = 'Test GET API';
+            if (api.method === 'POST') buttonText = 'Test POST API';
+            if (api.method === 'PUT') buttonText = 'Test PUT API';
+            if (api.method === 'DELETE') buttonText = 'Test DELETE API';
             
             tryApiBtn.innerHTML = `<i class="fas fa-play-circle"></i> ${buttonText}`;
+            
+            // Show/Hide Open API button
+            if (api.route && api.route !== '/') {
+                openApiBtn.style.display = 'inline-flex';
+                openApiBtn.onclick = () => {
+                    window.open(baseUrl, '_blank');
+                };
+            } else {
+                openApiBtn.style.display = 'none';
+            }
             
             // Parse and display route parameters
             const routeParams = parseRouteParameters(api.route);
@@ -1347,10 +1455,58 @@
                     `;
                 });
                 
+                // Add query parameters from usage field if available
+                if (api.usage && api.usage.includes('?')) {
+                    const queryPart = api.usage.split('?')[1];
+                    const queryParams = new URLSearchParams(queryPart);
+                    
+                    queryParams.forEach((value, key) => {
+                        if (value.includes('<') && value.includes('>')) {
+                            // This is a parameter placeholder like <spotify_track_url>
+                            const paramName = value.replace(/[<>]/g, '');
+                            paramsHTML += `
+                                <div class="param-row">
+                                    <div class="param-label">${key}:</div>
+                                    <input type="text" class="param-input" id="query-${key}" 
+                                           placeholder="Enter ${paramName}" 
+                                           data-query="${key}">
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                
                 paramsContainer.innerHTML = paramsHTML;
                 requestParams.classList.add('show');
             } else {
-                requestParams.classList.remove('show');
+                // Check if there are query parameters in usage
+                if (api.usage && api.usage.includes('?')) {
+                    const queryPart = api.usage.split('?')[1];
+                    const queryParams = new URLSearchParams(queryPart);
+                    
+                    queryParams.forEach((value, key) => {
+                        if (value.includes('<') && value.includes('>')) {
+                            const paramName = value.replace(/[<>]/g, '');
+                            paramsHTML += `
+                                <div class="param-row">
+                                    <div class="param-label">${key}:</div>
+                                    <input type="text" class="param-input" id="query-${key}" 
+                                           placeholder="Enter ${paramName}" 
+                                           data-query="${key}">
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    if (paramsHTML) {
+                        paramsContainer.innerHTML = paramsHTML;
+                        requestParams.classList.add('show');
+                    } else {
+                        requestParams.classList.remove('show');
+                    }
+                } else {
+                    requestParams.classList.remove('show');
+                }
             }
             
             // Hide response container
@@ -1396,23 +1552,12 @@
             successMessage.classList.remove('show');
         }
 
-        // Try API button click handler
-        tryApiBtn.addEventListener('click', async function() {
-            if (!currentApi) {
-                showError('No API selected. Please select an API from the sidebar.');
-                return;
-            }
+        // Build URL with parameters
+        function buildUrlWithParams(api) {
+            let url = api.route;
             
-            // Show loading state
-            const originalText = tryApiBtn.innerHTML;
-            tryApiBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            tryApiBtn.disabled = true;
-            
-            // Prepare URL with parameters
-            let url = currentApi.route;
-            const routeParams = parseRouteParameters(currentApi.route);
-            
-            // Replace route parameters with values from input fields
+            // Replace route parameters
+            const routeParams = parseRouteParameters(api.route);
             routeParams.forEach(param => {
                 const input = document.getElementById(`param-${param}`);
                 if (input && input.value.trim()) {
@@ -1422,6 +1567,44 @@
                     url = url.replace(`:${param}`, 'test');
                 }
             });
+            
+            // Add query parameters
+            const queryParams = [];
+            
+            // Get all query parameter inputs
+            document.querySelectorAll('[data-query]').forEach(input => {
+                if (input.value.trim()) {
+                    const key = input.getAttribute('data-query');
+                    queryParams.push(`${key}=${encodeURIComponent(input.value.trim())}`);
+                }
+            });
+            
+            // Add query string if there are parameters
+            if (queryParams.length > 0) {
+                url += '?' + queryParams.join('&');
+            }
+            
+            return url;
+        }
+
+        // Try API button click handler
+        tryApiBtn.addEventListener('click', async function() {
+            if (!currentApi) {
+                showError('No API selected. Please select an API from the sidebar.');
+                return;
+            }
+            
+            // Show loading state
+            const originalText = tryApiBtn.innerHTML;
+            tryApiBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            tryApiBtn.disabled = true;
+            
+            // Build URL with parameters
+            const url = buildUrlWithParams(currentApi);
+            const fullUrl = `${window.location.origin}${url}`;
+            
+            // Update displayed URL
+            fullApiUrl.textContent = fullUrl;
             
             // Prepare request options
             const requestOptions = {
@@ -1480,17 +1663,17 @@
                 
                 // Show success message
                 if (response.ok) {
-                    showSuccess(`API request successful! Status: ${response.status}`);
+                    showSuccess(`API test successful! Status: ${response.status}`);
                 } else {
-                    showError(`API request failed with status: ${response.status}`);
+                    showError(`API test failed with status: ${response.status}`);
                 }
                 
             } catch (error) {
-                console.error('API request failed:', error);
-                showError(`API request failed: ${error.message}`);
+                console.error('API test failed:', error);
+                showError(`API test failed: ${error.message}`);
                 
                 // Still show response container with error
-                responseContent.textContent = `Error: ${error.message}`;
+                responseContent.textContent = `Error: ${error.message}\n\nURL tested: ${fullUrl}`;
                 responseTime.textContent = '0ms';
                 responseSize.textContent = '0 B';
                 responseStatus.textContent = 'Error';
