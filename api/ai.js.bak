@@ -14,8 +14,11 @@ const models = {
 
 
 module.exports = {
-    name: "geminiAPI",
-    category: "ai",
+    name: "Gemini AI",
+    category: "AI",
+    description: "Google Gemini AI API integration with text and image support",
+    route: "/geminiapi",
+    method: "GET",
     usage: "/geminiapi?ask=&imagurl=&apikey=&aimodels=",
     handler: async (req, res) => {
         const { ask, imagurl, apikey, aimodels } = req.query;
@@ -80,4 +83,5 @@ if (!selectedModel) {
             });
         }
     }
+
 };
