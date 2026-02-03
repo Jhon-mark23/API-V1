@@ -27,11 +27,13 @@ fs.readdirSync(commandsPath).forEach(file => {
             app[method](route, command.handler);  
 
             commands.push({  
+                id: command.name.toLowerCase().replace(/\s+/g, '-'),
                 name: command.name,  
                 category: command.category || "uncategorized",  
                 route: route,  
                 method: method.toUpperCase(),  
-                usage: command.usage || "No usage information provided."  
+                usage: command.usage || "No usage information provided.",
+                description: command.description || "No description available."
             });  
 
             console.log(`✅ Loaded command: ${command.name} (Route: ${route}, Method: ${method.toUpperCase()})`);  
@@ -54,6 +56,24 @@ app.get('/shoti', (req, res) => {
 app.get('/api/list', (req, res) => {  
     res.json(commands);  
 });  
+
+// Endpoint to get categories for navigation
+app.get('/api/categories', (req, res) => {
+    const categories = {};
+    commands.forEach(cmd => {
+        if (!categories[cmd.category]) {
+            categories[cmd.category] = [];
+        }
+        categories[cmd.category].push(cmd);
+    });
+    res.json(categories);
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
 
 // Export the app for Vercel  
 module.exports = app;
