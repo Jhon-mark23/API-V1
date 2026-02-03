@@ -17,10 +17,12 @@ function getRandomUserAgent() {
 }
 
 module.exports = {
-    name: "spotify",
-    description: "Spotify info + temporary MP3 hosting with random User-Agent",
-    usage: "/spotify?url=",
-
+    name: "Spotify Info",
+    category: "Music",
+    description: "Spotify Downloader web scrape",
+    route: "/spotify",
+    method: "GET",
+    usage: "/spotify?url=<spotify_track_url>",
     handler: async (req, res) => {
         const { url, id, name } = req.query;
 
