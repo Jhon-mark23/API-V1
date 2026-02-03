@@ -3,9 +3,9 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Available Gemini AI models
 const availableModels = {
-    "1": "gemini-1.5-flash-latest",
-    "2": "gemini-1.5-pro-latest",
-    "3": "gemini-1.0-pro-latest"
+    "1": "gemini-flash-lite-latest",
+    "2": "gemini-2.5-pro",
+    "3": "gemini-3.0-pro"
 };
 
 module.exports = {
@@ -14,7 +14,7 @@ module.exports = {
     description: "Google Gemini AI API integration with text and image support",
     route: "/geminiapi",
     method: "GET",
-    usage: "/geminiapi?ask=hi&imagurl=&apikey=&aimodels=",
+    usage: "/geminiapi?ask=hi&imagurl=&apikey=&aimodels=1",
     handler: async (req, res) => {
         const { ask, imagurl, apikey, aimodels } = req.query;
 
