@@ -31,8 +31,16 @@ module.exports = {
   },
 };
 ````
+if you want more api and you need to import npm pls update the package.json to work in vercel thanks
 
 ## Getting Started
+
+## IMPORTANT 
+make sure you add this in vercel
+```npm
+npm install 
+```
+![Alt Text](https://github.com/Jhon-mark23/API-V1/raw/refs/heads/main/screenshot/Screenshot_20260203_203830.jpg)
 
 
 ### Requirements
