@@ -3,113 +3,721 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API List</title>
+    <title>API Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border: #dee2e6;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
         }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-        .api-container {
-            width: 100%;
-            max-width: 600px;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px;
-            text-align: left;
-            word-wrap: break-word;
-        }
-        .api-container h2 {
-            margin-bottom: 5px;
-            font-size: 20px;
-        }
-        .api-info {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 5px;
-            word-wrap: break-word;
-        }
-        .try-btn {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 14px;
-            font-weight: bold;
-            text-decoration: none;
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            background-color: #007bff;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 i {
+            color: var(--success);
+        }
+
+        .logo {
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Container */
+        .container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Side Navigation */
+        .side-nav {
+            width: 280px;
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-header {
+            padding: 0 20px 15px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .nav-header h3 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category {
+            margin-bottom: 10px;
+        }
+
+        .category-title {
+            padding: 12px 20px;
+            font-weight: 600;
+            color: var(--dark);
+            background: var(--light-gray);
+            border-left: 4px solid var(--primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .category-title:hover {
+            background: #e2e6ff;
+        }
+
+        .category-title i {
+            transition: transform 0.3s;
+            color: var(--gray);
+            font-size: 0.8rem;
+        }
+
+        .category-title.active i {
+            transform: rotate(90deg);
+            color: var(--primary);
+        }
+
+        .api-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .category.active .api-list {
+            max-height: 500px;
+        }
+
+        .nav-item {
+            padding: 10px 20px 10px 40px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .nav-item:hover {
+            background: #f8f9ff;
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: #eef1ff;
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .content-header {
+            margin-bottom: 30px;
+        }
+
+        .content-header h2 {
+            color: var(--dark);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .content-header p {
+            color: var(--gray);
+            max-width: 800px;
+        }
+
+        /* API Cards */
+        .api-container {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid var(--primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .api-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .api-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .api-header h3 {
+            color: var(--dark);
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .method-badge {
+            padding: 5px 12px;
             border-radius: 5px;
-            transition: 0.3s;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .method-get { background: #e7f4e4; color: #2e7d32; }
+        .method-post { background: #e3f2fd; color: #1565c0; }
+        .method-put { background: #fff3e0; color: #ef6c00; }
+        .method-delete { background: #ffebee; color: #c62828; }
+        .method-patch { background: #f3e5f5; color: #7b1fa2; }
+
+        .api-info {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .api-info:last-child {
+            border-bottom: none;
+        }
+
+        .api-info strong {
+            color: var(--dark);
+            min-width: 100px;
+            display: inline-block;
+        }
+
+        .api-info code {
+            background: var(--light-gray);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        .try-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .try-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
             text-align: center;
         }
-        .try-btn:hover {
-            background-color: #0056b3;
+
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
         }
-        @media screen and (max-width: 768px) {
-            body {
-                padding: 10px;
+
+        .stat-card h4 {
+            font-size: 2rem;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .side-nav {
+                width: 250px;
             }
-            h1 {
-                font-size: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
             }
+            
+            .mobile-menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .side-nav {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                z-index: 99;
+                background: white;
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            }
+            
+            .side-nav.active {
+                left: 0;
+            }
+            
+            .main-content {
+                padding: 80px 20px 30px;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 80px 15px 20px;
+            }
+            
             .api-container {
-                width: 100%;
-                max-width: 100%;
-                padding: 10px;
+                padding: 20px;
             }
+            
+            .api-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .api-info strong {
+                display: block;
+                margin-bottom: 5px;
+            }
+            
             .try-btn {
                 width: 100%;
-                padding: 12px;
+                justify-content: center;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Available API Endpoints</h1>
-    <div id="apiList"></div>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Header -->
+    <header class="header">
+        <h1><i class="fas fa-code"></i> API Dashboard</h1>
+        <div class="logo">v1.0</div>
+    </header>
+
+    <div class="container">
+        <!-- Side Navigation -->
+        <nav class="side-nav" id="sideNav">
+            <div class="nav-header">
+                <h3><i class="fas fa-list"></i> API Categories</h3>
+            </div>
+            <div id="categoryNav">
+                <!-- Categories will be loaded here -->
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h2>API Documentation</h2>
+                <p>Explore all available endpoints with detailed information. Click on any API in the sidebar to view details.</p>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats" id="statsOverview">
+                <!-- Stats will be loaded here -->
+            </div>
+
+            <!-- API List -->
+            <div id="apiList">
+                <!-- APIs will be loaded here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state">
+                <i class="fas fa-api"></i>
+                <h3>Select an API Endpoint</h3>
+                <p>Choose an API from the navigation menu to view details</p>
+            </div>
+        </main>
+    </div>
 
     <script>
-        async function loadAPIs() {
+        // DOM Elements
+        const sideNav = document.getElementById('sideNav');
+        const menuToggle = document.getElementById('menuToggle');
+        const categoryNav = document.getElementById('categoryNav');
+        const apiList = document.getElementById('apiList');
+        const emptyState = document.getElementById('emptyState');
+        const statsOverview = document.getElementById('statsOverview');
+
+        // Initialize the application
+        async function init() {
             try {
+                // Load API data
                 const response = await fetch('/api/list');
                 const commands = await response.json();
-                const apiList = document.getElementById('apiList');
-                apiList.innerHTML = '';
-
+                
+                // Group commands by category
+                const categories = {};
                 commands.forEach(cmd => {
-                    const apiBlock = `
-                        <div class="api-container">
-                            <h2>${cmd.name}</h2>
-                            <p class="api-info"><strong>Description:</strong> ${cmd.description}</p>
-                            <p class="api-info"><strong>Route:</strong> ${cmd.route}</p>
-                            <p class="api-info"><strong>Method:</strong> ${cmd.method.toUpperCase()}</p>
-                            <p class="api-info"><strong>Usage:</strong> ${cmd.usage}</p>
-                            <a href="${cmd.usage}" target="_blank" class="try-btn">Try API</a>
-                        </div>`;
-                    apiList.innerHTML += apiBlock;
+                    if (!categories[cmd.category]) {
+                        categories[cmd.category] = [];
+                    }
+                    categories[cmd.category].push(cmd);
                 });
+                
+                // Render category navigation
+                renderCategoryNav(categories);
+                
+                // Render stats
+                renderStats(commands, categories);
+                
+                // Load first API by default
+                if (commands.length > 0) {
+                    const firstCategory = Object.keys(categories)[0];
+                    const firstApi = categories[firstCategory][0];
+                    loadApiDetails(firstApi.id, commands);
+                    
+                    // Set first nav item as active
+                    const firstNavItem = document.querySelector('.nav-item');
+                    if (firstNavItem) firstNavItem.classList.add('active');
+                    
+                    // Set first category as active
+                    const firstCategoryElement = document.querySelector('.category');
+                    if (firstCategoryElement) firstCategoryElement.classList.add('active');
+                }
             } catch (error) {
-                console.error("Failed to load APIs:", error);
+                console.error('Error loading APIs:', error);
+                apiList.innerHTML = `
+                    <div class="api-container">
+                        <h3>Error Loading APIs</h3>
+                        <p>Unable to load API data. Please try again later.</p>
+                    </div>
+                `;
             }
         }
 
-        loadAPIs();
+        // Render category navigation
+        function renderCategoryNav(categories) {
+            let navHTML = '';
+            
+            for (const [categoryName, apis] of Object.entries(categories)) {
+                navHTML += `
+                    <div class="category">
+                        <div class="category-title">
+                            <span>${categoryName}</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="api-list">
+                `;
+                
+                apis.forEach(api => {
+                    navHTML += `
+                        <div class="nav-item" data-api-id="${api.id}">
+                            ${api.name}
+                        </div>
+                    `;
+                });
+                
+                navHTML += `</div></div>`;
+            }
+            
+            categoryNav.innerHTML = navHTML;
+            
+            // Add event listeners
+            document.querySelectorAll('.category-title').forEach(title => {
+                title.addEventListener('click', function() {
+                    const category = this.parentElement;
+                    category.classList.toggle('active');
+                });
+            });
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.nav-item').forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    this.classList.add('active');
+                    
+                    const apiId = this.getAttribute('data-api-id');
+                    fetch('/api/list')
+                        .then(response => response.json())
+                        .then(commands => loadApiDetails(apiId, commands))
+                        .catch(error => console.error('Error:', error));
+                    
+                    // Close mobile menu if open
+                    if (window.innerWidth <= 768) {
+                        sideNav.classList.remove('active');
+                        menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                    }
+                });
+            });
+        }
+
+        // Render stats
+        function renderStats(commands, categories) {
+            const totalAPIs = commands.length;
+            const totalCategories = Object.keys(categories).length;
+            
+            // Count methods
+            const methodCounts = {
+                GET: 0,
+                POST: 0,
+                PUT: 0,
+                DELETE: 0,
+                PATCH: 0
+            };
+            
+            commands.forEach(cmd => {
+                if (methodCounts[cmd.method]) {
+                    methodCounts[cmd.method]++;
+                }
+            });
+            
+            const mostCommonMethod = Object.entries(methodCounts)
+                .sort((a, b) => b[1] - a[1])[0][0];
+            
+            statsOverview.innerHTML = `
+                <div class="stat-card">
+                    <i class="fas fa-link"></i>
+                    <h4>${totalAPIs}</h4>
+                    <p>Total APIs</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-folder"></i>
+                    <h4>${totalCategories}</h4>
+                    <p>Categories</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h4>${mostCommonMethod}</h4>
+                    <p>Most Common Method</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-bolt"></i>
+                    <h4>${commands.filter(cmd => cmd.method === 'GET').length}</h4>
+                    <p>GET Endpoints</p>
+                </div>
+            `;
+        }
+
+        // Load API details
+        function loadApiDetails(apiId, commands) {
+            const api = commands.find(cmd => cmd.id === apiId);
+            
+            if (!api) {
+                emptyState.style.display = 'block';
+                apiList.innerHTML = '';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            const methodClass = `method-${api.method.toLowerCase()}`;
+            const methodIcon = getMethodIcon(api.method);
+            
+            const apiHTML = `
+                <div class="api-container">
+                    <div class="api-header">
+                        <h3>${methodIcon} ${api.name}</h3>
+                        <span class="method-badge ${methodClass}">${api.method}</span>
+                    </div>
+                    
+                    <div class="api-info">
+                        <strong>Description:</strong> ${api.description}
+                    </div>
+                    
+                    <div class="api-info">
+                        <strong>Route:</strong> <code>${api.route}</code>
+                    </div>
+                    
+                    <div class="api-info">
+                        <strong>Method:</strong> ${api.method}
+                    </div>
+                    
+                    <div class="api-info">
+                        <strong>Category:</strong> ${api.category}
+                    </div>
+                    
+                    <div class="api-info">
+                        <strong>Usage:</strong> <code>${api.usage}</code>
+                    </div>
+                    
+                    <a href="${api.usage}" target="_blank" class="try-btn">
+                        <i class="fas fa-rocket"></i> Try API
+                    </a>
+                </div>
+            `;
+            
+            apiList.innerHTML = apiHTML;
+        }
+
+        // Get icon for HTTP method
+        function getMethodIcon(method) {
+            const icons = {
+                'GET': 'fas fa-download',
+                'POST': 'fas fa-plus-circle',
+                'PUT': 'fas fa-edit',
+                'DELETE': 'fas fa-trash',
+                'PATCH': 'fas fa-pen'
+            };
+            return `<i class="${icons[method] || 'fas fa-code'}"></i>`;
+        }
+
+        // Mobile menu toggle
+        menuToggle.addEventListener('click', function() {
+            sideNav.classList.toggle('active');
+            const icon = this.querySelector('i');
+            if (sideNav.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInsideNav = sideNav.contains(event.target);
+            const isClickOnToggle = menuToggle.contains(event.target);
+            
+            if (!isClickInsideNav && !isClickOnToggle && sideNav.classList.contains('active')) {
+                sideNav.classList.remove('active');
+                menuToggle.querySelector('i').classList.remove('fa-times');
+                menuToggle.querySelector('i').classList.add('fa-bars');
+            }
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
