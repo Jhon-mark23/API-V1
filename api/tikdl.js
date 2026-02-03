@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports = {
   name: "TikTok Downloader",
-  category: "media",
+  category: "downloader",
   description: "Download TikTok videos without watermark",
   route: "/tikdl",
   method: "GET",
