@@ -2,9 +2,9 @@
   "name": "eapi",
   "version": "1.0.0",
   "description": "Express API for Vercel with AI and media integrations",
-  "main": "api/index.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node api/index.js",
+    "start": "node index.js",
     "dev": "vercel dev",
     "deploy": "vercel --prod",
     "vercel-build": "npm install"
