@@ -17,7 +17,7 @@ function getRandomUserAgent() {
 }
 
 module.exports = {
-    name: "Spotify Info",
+    name: "Spotify Downloader",
     category: "Music",
     description: "Spotify Downloader web scrape",
     route: "/spotify",
