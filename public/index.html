@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .api-container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            text-align: left;
+            word-wrap: break-word;
+        }
+        .api-container h2 {
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+        .api-info {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+        .try-btn {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            background-color: #007bff;
+            border-radius: 5px;
+            transition: 0.3s;
+            text-align: center;
+        }
+        .try-btn:hover {
+            background-color: #0056b3;
+        }
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .api-container {
+                width: 100%;
+                max-width: 100%;
+                padding: 10px;
+            }
+            .try-btn {
+                width: 100%;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Available API Endpoints</h1>
+    <div id="apiList"></div>
+
+    <script>
+        async function loadAPIs() {
+            try {
+                const response = await fetch('/api/list');
+                const commands = await response.json();
+                const apiList = document.getElementById('apiList');
+                apiList.innerHTML = '';
+
+                commands.forEach(cmd => {
+                    const apiBlock = `
+                        <div class="api-container">
+                            <h2>${cmd.name}</h2>
+                            <p class="api-info"><strong>Description:</strong> ${cmd.description}</p>
+                            <p class="api-info"><strong>Route:</strong> ${cmd.route}</p>
+                            <p class="api-info"><strong>Method:</strong> ${cmd.method.toUpperCase()}</p>
+                            <p class="api-info"><strong>Usage:</strong> ${cmd.usage}</p>
+                            <a href="${cmd.usage}" target="_blank" class="try-btn">Try API</a>
+                        </div>`;
+                    apiList.innerHTML += apiBlock;
+                });
+            } catch (error) {
+                console.error("Failed to load APIs:", error);
+            }
+        }
+
+        loadAPIs();
+    </script>
+</body>
+</html>

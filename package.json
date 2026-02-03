@@ -1,0 +1,33 @@
+{
+  "name": "eapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "expressjs",
+  "dependencies": {
+    "@distube/ytdl-core": "^4.16.4",
+    "@google/generative-ai": "^0.24.0",
+    "@hiudyy/ytdl": "^0.2.3",
+    "@mistralai/mistralai": "^1.5.1",
+    "@xaviabot/fb-downloader": "^1.0.14",
+    "axios": "^1.8.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "fetch": "^1.1.0",
+    "fs": "^0.0.1-security",
+    "gpti": "^2.1.8",
+    "gtts": "^0.2.1",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^6.10.0",
+    "path": "^0.12.7",
+    "readline-sync": "^1.4.10",
+    "ruhend-scraper": "^9.0.1"
+  },
+}
