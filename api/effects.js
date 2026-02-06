@@ -1,10 +1,9 @@
-
 const axios = require('axios');
 const cheerio = require('cheerio');
 
 // Cache for storing sound data
-let soundCache = null;
-let cacheTimestamp = 0;
+let soundCache = {};
+let cacheTimestamps = {};
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
 
 // Random user agents
@@ -22,15 +21,20 @@ function getRandomUserAgent() {
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
-async function fetchSounds() {
+async function fetchSounds(location = 'ph') {
   const now = Date.now();
+  const cacheKey = location.toLowerCase();
   
-  if (soundCache && (now - cacheTimestamp) < CACHE_DURATION) {
-    return soundCache;
+  // Return cached data if still valid
+  if (soundCache[cacheKey] && cacheTimestamps[cacheKey] && 
+      (now - cacheTimestamps[cacheKey]) < CACHE_DURATION) {
+    return soundCache[cacheKey];
   }
   
   try {
-    const url = 'https://www.myinstants.com/en/index/ph/';
+    const url = `https://www.myinstants.com/en/index/${location}/`;
+    console.log(`Fetching sounds from: ${url}`);
+    
     const response = await axios.get(url, {
       headers: {
         'User-Agent': getRandomUserAgent(),
@@ -62,25 +66,28 @@ async function fetchSounds() {
               id: index + 1,
               name: name,
               filename: filename,
-              mp3_url: mp3Url
+              mp3_url: mp3Url,
+              location: location
             });
           }
         }
       }
     });
     
-    soundCache = sounds;
-    cacheTimestamp = now;
+    soundCache[cacheKey] = sounds;
+    cacheTimestamps[cacheKey] = now;
+    
+    console.log(`Fetched ${sounds.length} sounds from ${location}`);
     return sounds;
     
   } catch (error) {
-    console.error('Error fetching sounds:', error.message);
+    console.error(`Error fetching sounds for ${location}:`, error.message);
     
     // Try backup with different user agent
-    if (!soundCache) {
+    if (!soundCache[cacheKey]) {
       try {
-        console.log('Attempting backup fetch...');
-        const backupResponse = await axios.get('https://www.myinstants.com/en/index/ph/', {
+        console.log(`Attempting backup fetch for ${location}...`);
+        const backupResponse = await axios.get(`https://www.myinstants.com/en/index/${location}/`, {
           headers: { 'User-Agent': getRandomUserAgent() },
           timeout: 8000
         });
@@ -106,42 +113,43 @@ async function fetchSounds() {
                   id: index + 1,
                   name: name,
                   filename: filename,
-                  mp3_url: mp3Url
+                  mp3_url: mp3Url,
+                  location: location
                 });
               }
             }
           }
         });
         
-        soundCache = sounds;
-        cacheTimestamp = now;
+        soundCache[cacheKey] = sounds;
+        cacheTimestamps[cacheKey] = now;
         return sounds;
         
       } catch (backupError) {
-        console.error('Backup fetch failed:', backupError.message);
+        console.error(`Backup fetch failed for ${location}:`, backupError.message);
       }
     }
     
-    return soundCache || [];
+    return soundCache[cacheKey] || [];
   }
 }
 
 module.exports = {
   name: "Sound Effects API",
   category: "media",
-  description: "API for Myinstants sound effects. Search or list available sounds.",
+  description: "API for Myinstants sound effects. Search or list available sounds by location.",
   route: "/effects",
   method: "GET",
-  usage: "/effects?sound=filename.mp3",
+  usage: "/effects?location=ph&sound=filename.mp3",
   handler: async (req, res) => {
     try {
-      const { sound, limit } = req.query;
-      const sounds = await fetchSounds();
+      const { sound, limit, location = 'ph' } = req.query;
+      const sounds = await fetchSounds(location);
       
       if (!sounds || sounds.length === 0) {
         return res.json({
           code: 1,
-          msg: "No sounds available at the moment",
+          msg: `No sounds available for ${location} at the moment`,
           data: []
         });
       }
@@ -155,12 +163,13 @@ module.exports = {
         if (foundSound) {
           return res.json({
             code: 0,
-            msg: "The sound effects found",
+            msg: "",
             data: {
               sounds: [{
                 id: foundSound.id,
                 name: foundSound.name,
-                mp3_url: foundSound.mp3_url
+                mp3_url: foundSound.mp3_url,
+                location: foundSound.location
               }]
             }
           });
@@ -178,7 +187,8 @@ module.exports = {
                 sounds: matchingSounds.map(sound => ({
                   id: sound.id,
                   name: sound.name,
-                  mp3_url: sound.mp3_url
+                  mp3_url: sound.mp3_url,
+                  location: sound.location
                 }))
               }
             });
@@ -186,8 +196,11 @@ module.exports = {
           
           return res.json({
             code: 2,
-            msg: "Sound not found",
-            data: null
+            msg: `Sound "${sound}" not found in ${location}`,
+            data: {
+              suggestions: sounds.slice(0, 3).map(s => s.filename),
+              location: location
+            }
           });
         }
       }
@@ -196,15 +209,17 @@ module.exports = {
       const showLimit = parseInt(limit) || sounds.length;
       return res.json({
         code: 0,
-        msg: "All available sound effects",
+        msg: `All available sound effects for ${location}`,
         data: {
           sounds: sounds.slice(0, showLimit).map(sound => ({
             id: sound.id,
             name: sound.name,
-            filename: sound.filename
+            filename: sound.filename,
+            location: sound.location
           })),
           total: sounds.length,
-          showing: Math.min(showLimit, sounds.length)
+          showing: Math.min(showLimit, sounds.length),
+          location: location
         }
       });
       
