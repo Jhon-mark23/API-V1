@@ -1,16 +1,14 @@
-// File: effects.js
+
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-// Cache for storing sound data to avoid repeated scraping
 let soundCache = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+const CACHE_DURATION = 5 * 60 * 1000;
 
 async function fetchSounds() {
   const now = Date.now();
   
-  // Return cached data if still valid
   if (soundCache && (now - cacheTimestamp) < CACHE_DURATION) {
     return soundCache;
   }
@@ -18,15 +16,12 @@ async function fetchSounds() {
   try {
     const url = 'https://www.myinstants.com/en/index/ph/';
     const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
+      headers: { 'User-Agent': 'Mozilla/5.0' }
     });
     
     const $ = cheerio.load(response.data);
     const sounds = [];
     
-    // Find all sound elements
     $('div.instant').each((index, element) => {
       const button = $(element).find('button');
       const link = $(element).find('a.instant-link');
@@ -34,22 +29,17 @@ async function fetchSounds() {
       if (button.length && link.length) {
         const onclick = button.attr('onclick');
         if (onclick) {
-          // Extract MP3 URL from play() function
           const match = onclick.match(/play\('([^']+)',\s*'[^']*',\s*'([^']+)'\)/);
           if (match) {
             const mp3Url = match[1].startsWith('/') ? 
               `https://www.myinstants.com${match[1]}` : match[1];
-            const slug = match[2];
-            const name = link.text().trim();
             const filename = mp3Url.split('/').pop();
             
             sounds.push({
               id: index + 1,
-              name: name,
+              name: link.text().trim(),
               filename: filename,
-              slug: slug,
-              mp3_url: mp3Url,
-              page_url: `https://www.myinstants.com${link.attr('href')}`
+              mp3_url: mp3Url
             });
           }
         }
@@ -62,37 +52,34 @@ async function fetchSounds() {
     
   } catch (error) {
     console.error('Error fetching sounds:', error.message);
-    return soundCache || []; // Return cache if exists, otherwise empty array
+    return soundCache || [];
   }
 }
 
 module.exports = {
   name: "Sound Effects API",
   category: "media",
-  description: "API for Myinstants sound effects. Search or list available sounds.",
+  description: "Minimalist API for Myinstants sound effects",
   route: "/effects",
   method: "GET",
-  usage: "/effects?sound=filename.mp3 or /effects to list all",
+  usage: "/effects?sound=filename.mp3 or /effects for all",
   handler: async (req, res) => {
     try {
-      const { sound, search, limit } = req.query;
+      const { sound, limit } = req.query;
       const sounds = await fetchSounds();
       
-      // If no sounds found
       if (!sounds || sounds.length === 0) {
         return res.json({
           code: 1,
-          msg: "No sounds available at the moment",
+          msg: "No sounds available",
           data: []
         });
       }
       
-      // Case 1: Search for specific sound by filename
+      // Specific sound query
       if (sound) {
         const foundSound = sounds.find(s => 
-          s.filename.toLowerCase() === sound.toLowerCase() ||
-          s.slug.toLowerCase().includes(sound.toLowerCase()) ||
-          s.name.toLowerCase().includes(sound.toLowerCase())
+          s.filename.toLowerCase() === sound.toLowerCase()
         );
         
         if (foundSound) {
@@ -101,80 +88,53 @@ module.exports = {
             msg: "Sound found",
             data: {
               sound: foundSound,
-              total_sounds: sounds.length,
-              cached: Date.now() - cacheTimestamp < CACHE_DURATION
-            }
-          });
-        } else {
-          // Try partial filename match
-          const matchingSounds = sounds.filter(s => 
-            s.filename.toLowerCase().includes(sound.toLowerCase())
-          );
-          
-          if (matchingSounds.length > 0) {
-            return res.json({
-              code: 0,
-              msg: "Partial matches found",
-              data: {
-                matches: matchingSounds,
-                total_matches: matchingSounds.length,
-                total_sounds: sounds.length
-              }
-            });
-          }
-          
-          return res.json({
-            code: 2,
-            msg: `Sound "${sound}" not found`,
-            data: {
-              suggestions: sounds.slice(0, 5).map(s => s.filename),
-              total_available: sounds.length
+              total: sounds.length
             }
           });
         }
-      }
-      
-      // Case 2: Search by name/content
-      if (search) {
-        const searchTerm = search.toLowerCase();
+        
+        // Try partial match
         const matchingSounds = sounds.filter(s => 
-          s.name.toLowerCase().includes(searchTerm) ||
-          s.filename.toLowerCase().includes(searchTerm) ||
-          s.slug.toLowerCase().includes(searchTerm)
+          s.filename.toLowerCase().includes(sound.toLowerCase())
         );
         
+        if (matchingSounds.length > 0) {
+          return res.json({
+            code: 0,
+            msg: `${matchingSounds.length} matches found`,
+            data: {
+              sounds: matchingSounds,
+              total: sounds.length
+            }
+          });
+        }
+        
         return res.json({
-          code: 0,
-          msg: matchingSounds.length > 0 ? "Search results" : "No matches found",
+          code: 2,
+          msg: "Sound not found",
           data: {
-            sounds: matchingSounds.slice(0, parseInt(limit) || 50),
-            total_matches: matchingSounds.length,
-            total_sounds: sounds.length,
-            search_term: search
+            suggestions: sounds.slice(0, 3).map(s => s.filename)
           }
         });
       }
       
-      // Case 3: No query - show all sounds (with optional limit)
+      // No query - return all sounds
       const showLimit = parseInt(limit) || sounds.length;
       return res.json({
         code: 0,
         msg: "All available sound effects",
         data: {
           sounds: sounds.slice(0, showLimit),
-          total_sounds: sounds.length,
-          showing: Math.min(showLimit, sounds.length),
-          cached: Date.now() - cacheTimestamp < CACHE_DURATION,
-          cache_age: Math.round((Date.now() - cacheTimestamp) / 1000) + ' seconds'
+          total: sounds.length,
+          showing: Math.min(showLimit, sounds.length)
         }
       });
       
     } catch (error) {
-      console.error('API error:', error);
       return res.json({
         code: 99,
-        msg: "Internal server error",
-        error: error.message
+        msg: "Server error",
+        data: null
       });
     }
   }
