@@ -2,11 +2,11 @@ const axios = require("axios");
 
 module.exports = {
   name: "TikTok Downloader",
-  category: "downloader",
+  category: "Downloader",
   description: "Download TikTok videos without watermark",
   route: "/tikdl",
   method: "GET",
-  usage: "/tikdl?url=<tiktok_video_url>",
+  usage: "/tikdl?url=",
   handler: async (req, res) => {
     const startTime = Date.now();
     const { url } = req.query;
