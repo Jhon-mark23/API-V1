@@ -1,3 +1,4 @@
+// File: effects.js
 const axios = require('axios');
 const cheerio = require('cheerio');
 
@@ -21,14 +22,26 @@ function getRandomUserAgent() {
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
-async function fetchSounds(location = 'ph') {
+// Clean location parameter - remove query strings
+function cleanLocationParam(location) {
+  if (!location) return 'ph';
+  
+  // Remove everything after ? or &
+  const cleanLocation = location.split('?')[0].split('&')[0].split('/')[0];
+  
+  // Default to 'ph' if empty
+  return cleanLocation.trim() || 'ph';
+}
+
+async function fetchSounds(locationParam) {
+  const location = cleanLocationParam(locationParam);
   const now = Date.now();
   const cacheKey = location.toLowerCase();
   
   // Return cached data if still valid
   if (soundCache[cacheKey] && cacheTimestamps[cacheKey] && 
       (now - cacheTimestamps[cacheKey]) < CACHE_DURATION) {
-    return soundCache[cacheKey];
+    return { sounds: soundCache[cacheKey], location: location };
   }
   
   try {
@@ -66,8 +79,7 @@ async function fetchSounds(location = 'ph') {
               id: index + 1,
               name: name,
               filename: filename,
-              mp3_url: mp3Url,
-              location: location
+              mp3_url: mp3Url
             });
           }
         }
@@ -78,7 +90,7 @@ async function fetchSounds(location = 'ph') {
     cacheTimestamps[cacheKey] = now;
     
     console.log(`Fetched ${sounds.length} sounds from ${location}`);
-    return sounds;
+    return { sounds: sounds, location: location };
     
   } catch (error) {
     console.error(`Error fetching sounds for ${location}:`, error.message);
@@ -113,8 +125,7 @@ async function fetchSounds(location = 'ph') {
                   id: index + 1,
                   name: name,
                   filename: filename,
-                  mp3_url: mp3Url,
-                  location: location
+                  mp3_url: mp3Url
                 });
               }
             }
@@ -123,14 +134,14 @@ async function fetchSounds(location = 'ph') {
         
         soundCache[cacheKey] = sounds;
         cacheTimestamps[cacheKey] = now;
-        return sounds;
+        return { sounds: sounds, location: location };
         
       } catch (backupError) {
         console.error(`Backup fetch failed for ${location}:`, backupError.message);
       }
     }
     
-    return soundCache[cacheKey] || [];
+    return { sounds: soundCache[cacheKey] || [], location: location };
   }
 }
 
@@ -143,13 +154,21 @@ module.exports = {
   usage: "/effects?location=ph&sound=filename.mp3",
   handler: async (req, res) => {
     try {
-      const { sound, limit, location = 'ph' } = req.query;
-      const sounds = await fetchSounds(location);
+      // Clean parameters
+      const sound = req.query.sound ? cleanLocationParam(req.query.sound) : null;
+      const limit = req.query.limit;
+      const locationParam = req.query.location;
+      
+      // Get location (default to 'ph')
+      const location = cleanLocationParam(locationParam);
+      
+      // Fetch sounds for this location
+      const { sounds, location: cleanLocation } = await fetchSounds(location);
       
       if (!sounds || sounds.length === 0) {
         return res.json({
           code: 1,
-          msg: `No sounds available for ${location} at the moment`,
+          msg: `No sounds available for ${cleanLocation} at the moment`,
           data: []
         });
       }
@@ -168,8 +187,7 @@ module.exports = {
               sounds: [{
                 id: foundSound.id,
                 name: foundSound.name,
-                mp3_url: foundSound.mp3_url,
-                location: foundSound.location
+                mp3_url: foundSound.mp3_url
               }]
             }
           });
@@ -184,11 +202,10 @@ module.exports = {
               code: 0,
               msg: "",
               data: {
-                sounds: matchingSounds.map(sound => ({
-                  id: sound.id,
-                  name: sound.name,
-                  mp3_url: sound.mp3_url,
-                  location: sound.location
+                sounds: matchingSounds.map(s => ({
+                  id: s.id,
+                  name: s.name,
+                  mp3_url: s.mp3_url
                 }))
               }
             });
@@ -196,30 +213,29 @@ module.exports = {
           
           return res.json({
             code: 2,
-            msg: `Sound "${sound}" not found in ${location}`,
+            msg: `Sound "${sound}" not found in ${cleanLocation}`,
             data: {
               suggestions: sounds.slice(0, 3).map(s => s.filename),
-              location: location
+              location: cleanLocation
             }
           });
         }
       }
       
-      // No query - show all sounds
+      // No sound query - show all sounds
       const showLimit = parseInt(limit) || sounds.length;
       return res.json({
         code: 0,
-        msg: `All available sound effects for ${location}`,
+        msg: `All available sound effects for ${cleanLocation}`,
         data: {
-          sounds: sounds.slice(0, showLimit).map(sound => ({
-            id: sound.id,
-            name: sound.name,
-            filename: sound.filename,
-            location: sound.location
+          sounds: sounds.slice(0, showLimit).map(s => ({
+            id: s.id,
+            name: s.name,
+            filename: s.filename
           })),
           total: sounds.length,
           showing: Math.min(showLimit, sounds.length),
-          location: location
+          location: cleanLocation
         }
       });
       
