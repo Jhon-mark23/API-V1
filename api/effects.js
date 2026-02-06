@@ -69,8 +69,8 @@ async function fetchSounds() {
             sounds.push({
               id: index + 1,
               name: link.text().trim(),
-              filename: filename,
-              mp3_url: mp3Url
+              filename: filename
+              //mp3_url: mp3Url
             });
           }
         }
@@ -138,7 +138,7 @@ module.exports = {
   description: "Minimalist API for Myinstants sound effects with random user agents",
   route: "/effects",
   method: "GET",
-  usage: "/effects?sound=filename.mp3 or /effects for all",
+  usage: "/effects?sound=filename.mp3",
   handler: async (req, res) => {
     try {
       const { sound, limit } = req.query;
