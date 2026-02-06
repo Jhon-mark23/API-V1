@@ -16,7 +16,7 @@ async function fetchSounds() {
   try {
     const url = 'https://www.myinstants.com/en/index/ph/';
     const response = await axios.get(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: { 'User-Agent': 'Mozilla/4.0' }
     });
     
     const $ = cheerio.load(response.data);
