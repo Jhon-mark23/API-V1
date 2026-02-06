@@ -62,7 +62,7 @@ module.exports = {
   description: "Minimalist API for Myinstants sound effects",
   route: "/effects",
   method: "GET",
-  usage: "/effects?sound=filename.mp3 or /effects for all",
+  usage: "/effects?sound=filename.mp3",
   handler: async (req, res) => {
     try {
       const { sound, limit } = req.query;
