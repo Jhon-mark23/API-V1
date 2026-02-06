@@ -1,16 +1,29 @@
-// File: effects.js
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-// Cache for storing sound data to avoid repeated scraping
+// Cache for storing sound data
 let soundCache = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Pool of random User-Agents
+const USER_AGENTS = [
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.160 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:115.0) Gecko/20100101 Firefox/115.0",
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+];
+
+// Helper → pick random User-Agent
+function getRandomUserAgent() {
+  return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+}
 
 async function fetchSounds() {
   const now = Date.now();
 
-  // Return cached data if still valid
+  // Return cached if valid
   if (soundCache && (now - cacheTimestamp) < CACHE_DURATION) {
     return soundCache;
   }
@@ -18,7 +31,7 @@ async function fetchSounds() {
   try {
     const url = 'https://www.myinstants.com/en/index/ph/';
     const response = await axios.get(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: { 'User-Agent': getRandomUserAgent() }
     });
 
     const $ = cheerio.load(response.data);
@@ -74,7 +87,6 @@ module.exports = {
       const { sound } = req.query;
       const sounds = await fetchSounds();
 
-      // if no data
       if (!sounds || sounds.length === 0) {
         return res.json({
           code: 1,
@@ -106,7 +118,7 @@ module.exports = {
         } else {
           return res.json({
             code: 2,
-            msg: `Sound "${sound}" not found`,
+            msg: `Sound \"${sound}\" not found`,
             data: { sounds: [] }
           });
         }
